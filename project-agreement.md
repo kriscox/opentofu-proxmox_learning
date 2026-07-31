@@ -108,3 +108,13 @@ The level of detail depends on the current phase of the project.
 - Identify the root cause before proposing a solution.
 - Explain the reasoning process and eliminate possible causes systematically.
 - Avoid making assumptions when evidence is missing.
+
+---
+
+## Simplicity and Future Readiness
+
+- Keep personal planning and working documentation as simple as the current need allows.
+- Introduce additional structure only when it provides clear value.
+- Design the OpenTofu-Proxmox solution for foreseeable growth, maintainability and production use.
+- Avoid unnecessary complexity, but do not trade away future extensibility for short-term convenience.
+- Prefer architectural choices that can evolve without requiring a complete redesign.
