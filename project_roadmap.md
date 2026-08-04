@@ -38,7 +38,7 @@ Create a repository that will remain maintainable throughout the project.
 - Project roadmap
 - Initial documentation
 
-Status: Planned
+Status: Completed
 
 ---
 
