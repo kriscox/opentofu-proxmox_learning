@@ -2,26 +2,23 @@
 
 ## Purpose
 
-This document contains the working analysis used to identify and define the deployment units of the platform.
+This document contains the working analysis used to identify and define the deployment units of the initial platform scenario.
 
-It supports the Phase 2 architecture work and remains personal working documentation until the proposed deployment units, their boundaries and their dependencies are sufficiently stable to be documented in the shared platform repository.
+The resulting deployment units are documented individually under `deployment-units/`.
 
-## Current architectural context
+## Identified Deployment Units
 
-The initial learning scenario contains a log aggregation block with the following components:
+### Vector Agent
 
-* Vector Agent
-* Vector Server
-* Loki
-* Grafana
+**Primary responsibility**
 
-The block describes a functionally coherent solution, but it is not automatically one deployment unit.
+Collect log data from a producing workload and securely forward it to the Log Ingestion and Storage deployment unit.
 
-A deployment unit is a separately deployable and manageable architectural unit with its own responsibility, lifecycle, boundaries, security considerations and explicit dependencies.
+**Rationale**
 
-## Current working proposal
+The Vector Agent is a reusable deployment unit that can be instantiated alongside multiple producing workloads.
 
-The log aggregation block currently contains two identified deployment units.
+Its baseline configuration is managed centrally, while workload-specific log sources are configured per deployment instance.
 
 ### Log Ingestion and Storage
 
@@ -34,19 +31,9 @@ Receive, process and store log data.
 * Vector Server
 * Loki
 
-**Current rationale**
+**Rationale**
 
-Vector Server and Loki form a closely connected processing and storage chain. They are expected to share a sufficiently related lifecycle and operational responsibility to be treated as one deployment unit.
-
-**External dependencies**
-
-* Kubernetes runtime
-* Persistent storage
-* Network connectivity
-* Central routing and firewall enforcement
-* Log producers, including Vector Agents
-
-The deployment unit must describe the network flows it requires. The central network or security capability remains responsible for implementing routing and firewall rules at the boundaries it owns.
+Vector Server and Loki form a coherent processing and storage capability with a sufficiently aligned lifecycle and operational responsibility to be managed as one deployment unit.
 
 ### Observability Visualisation
 
@@ -58,51 +45,34 @@ Provide access to and visualisation of observability data.
 
 * Grafana
 
-**Current rationale**
+**Rationale**
 
-Grafana has a separate responsibility and can evolve independently from the log ingestion and storage capability.
+Grafana has a separate responsibility and lifecycle from log ingestion and storage and can be reused with additional observability data sources.
 
-It may later be reused for additional observability data sources, such as metrics or traces. This gives it a different lifecycle and reuse potential from Vector Server and Loki.
+## Deployment Unit Relationships
 
-**External dependencies**
+The initial architecture follows this dependency chain:
 
-* Kubernetes runtime
-* Loki as an initial data source
-* Network connectivity
-* Identity and access capabilities when user access is introduced
+`Producing workload → Vector Agent → Log Ingestion and Storage → Observability Visualisation`
 
-## Boundary and responsibility notes
+Each deployment unit exposes explicit interfaces and dependencies while remaining independently deployable and manageable as far as reasonably possible.
+
+## Boundary and Responsibility Principles
 
 A functional block and a deployment unit are not the same concept.
 
 * A **functional block** groups components that collectively provide a business or technical capability.
 * A **deployment unit** defines a separately deployable and manageable architectural boundary.
 
-One functional block may therefore contain multiple deployment units.
+Shared capabilities such as network, identity, security and storage remain external dependencies where they do not logically belong inside the deployment unit.
 
-A deployment unit does not necessarily own every external configuration it requires.
+## Current Status
 
-For example:
-
-* The log-related deployment unit defines the communication flows it requires.
-* The central network or security capability implements and manages routing and firewall rules at the boundaries it owns.
-* Both responsibilities and the resulting dependency must be documented explicitly.
-
-## Open questions
-
-* Is the Vector Agent a reusable deployment unit or part of each producing workload?
-* Are Vector Server and Loki sufficiently aligned in lifecycle and responsibility to remain one deployment unit?
-* Which central capability owns VLAN creation, routing and firewall enforcement?
-* How should required changes in other deployment units be declared and validated?
-* Which security controls belong inside each deployment unit and which are external dependencies?
-
-## Current status
-
-| Subject                         | Status                            |
-| ------------------------------- | --------------------------------- |
-| Definition of deployment unit   | Documented in ADR-001             |
-| Log Ingestion and Storage       | Initial candidate                 |
-| Observability Visualisation     | Initial candidate                 |
-| Vector Agent boundary           | To be analysed                    |
-| Network and firewall dependency | Identified, not yet fully defined |
-| Complete deployment-unit model  | In progress                       |
+| Subject                       | Status                |
+| ----------------------------- | --------------------- |
+| Definition of deployment unit | Documented in ADR-001 |
+| Vector Agent                  | Defined               |
+| Log Ingestion and Storage     | Defined               |
+| Observability Visualisation   | Defined               |
+| Interfaces and dependencies   | Validated             |
+| Deployment-unit model         | Completed             |

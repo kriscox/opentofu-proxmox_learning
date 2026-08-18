@@ -56,7 +56,7 @@ The deployment unit depends on:
 * IT Operations, which uses Grafana to analyse and support platform and application services.
 * Application and infrastructure teams, which use Grafana to consult observability data.
 * Security and Compliance, which defines applicable access, audit and security requirements.
-* IT Operations, which manage the Entra ID groups and application roles used for Grafana access.
+* IT Operations, which manages the Entra ID groups and application roles used for Grafana access.
 
 ### Governance
 
@@ -66,6 +66,7 @@ The deployment unit depends on:
 * Loki is the initial approved observability data source.
 * Additional data sources require explicit approval and must comply with the defined security and access requirements.
 * Dashboard creation and management are outside the scope of this deployment unit.
+* The Microsoft Entra ID integration is provider-specific and must remain replaceable through Grafana-supported authentication mechanisms.
 
 ## Architecture
 

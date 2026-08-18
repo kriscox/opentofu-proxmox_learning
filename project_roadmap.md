@@ -55,7 +55,7 @@ Define the architecture independently from any implementation technology.
 - Dependencies
 - Architectural Decision Records (ADRs)
 
-Status: Planned
+Status: Completed
 
 ---
 
