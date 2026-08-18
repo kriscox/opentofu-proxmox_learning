@@ -92,3 +92,34 @@ Revisit during:
 * Cross-scope dependency design
 * Security and access-control design
 * CI/CD orchestration design
+
+## State backend requirements
+
+Define the minimum capabilities required from the OpenTofu state backend.
+
+Current requirements:
+
+* State must be stored independently from the machine executing OpenTofu.
+* State must be recoverable through versioning, point-in-time recovery or an equivalent mechanism.
+* The backend must support state locking to prevent concurrent write operations against the same state.
+* Production state must be access-controlled separately from non-production state.
+* The backend must support role-based access control with sufficient granularity to introduce additional separation where required.
+* State data must be encrypted at rest.
+* State data must be encrypted in transit between OpenTofu and the state backend.
+* Access to state data must be auditable.
+* The backend must provide logs that allow state read, write and delete operations to be traced to an authenticated identity.
+* State must be recoverable.
+* The backend must provide versioning, point-in-time recovery or an equivalent recovery mechanism.
+
+Topics still to evaluate:
+
+* Access control and separation between environments and deployment scopes.
+* Encryption requirements.
+* Auditability and logging.
+* Availability and disaster-recovery requirements.
+
+Revisit during:
+
+* State backend selection
+* Security and access-control design
+* CI/CD implementation
