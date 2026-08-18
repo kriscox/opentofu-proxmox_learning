@@ -59,3 +59,36 @@ Revisit during:
 * CI/CD orchestration design
 * Disaster recovery design
 * Business validation and recovery testing
+
+## Cross-scope dependencies and data exchange
+
+Define how independently managed deployment scopes exchange information and how their dependencies are represented technically.
+
+Current direction:
+
+* Each combination of deployment scope and environment has an independent OpenTofu state.
+* Dependencies between deployment scopes must remain explicit and should eventually be machine-readable.
+* CI/CD orchestration should use these dependencies to determine deployment order.
+* A dependency between scopes does not necessarily mean that one scope should directly access the other scope's OpenTofu state.
+
+Options to evaluate for exchanging data between scopes include:
+
+* OpenTofu `terraform_remote_state`;
+* explicitly published configuration or outputs;
+* provider-specific or platform configuration stores;
+* other mechanisms that reduce direct coupling between states.
+
+Architectural concerns:
+
+* Avoid unnecessary coupling between deployment scopes.
+* Avoid granting broad access to another scope's state solely to consume a small number of values.
+* Consider whether exchanged information may contain sensitive data.
+* Keep the dependency direction explicit and understandable.
+* Distinguish deployment ordering from data exchange: a scope may depend on another scope being deployed without necessarily consuming its state.
+
+Revisit during:
+
+* OpenTofu implementation design
+* Cross-scope dependency design
+* Security and access-control design
+* CI/CD orchestration design
