@@ -108,8 +108,6 @@ Current requirements:
 * State data must be encrypted in transit between OpenTofu and the state backend.
 * Access to state data must be auditable.
 * The backend must provide logs that allow state read, write and delete operations to be traced to an authenticated identity.
-* State must be recoverable.
-* The backend must provide versioning, point-in-time recovery or an equivalent recovery mechanism.
 
 Topics still to evaluate:
 
@@ -123,3 +121,92 @@ Revisit during:
 * State backend selection
 * Security and access-control design
 * CI/CD implementation
+
+## Verification-only CI/CD execution
+
+Provide a CI/CD execution mode that validates the intended infrastructure change without applying it.
+
+Current direction:
+
+* Validation and planning must be usable independently from deployment.
+* A pipeline should be able to determine the expected infrastructure changes before an apply operation is authorised.
+* Verification-only execution should support review, impact assessment and controlled production changes.
+
+Architectural concerns:
+
+* Validation must not unintentionally modify managed infrastructure.
+* The result should provide sufficient information for technical review and approval.
+* The same configuration and state boundaries should be used for verification and deployment.
+* Verification-only execution may later support drift detection, but drift-management behaviour should be designed separately.
+
+Revisit during:
+
+* CI/CD pipeline design
+* Change and approval workflow design
+* Drift-management design
+
+## OpenTofu and Kubernetes deployment responsibilities
+
+Define the boundary between infrastructure provisioning with OpenTofu and deployment of Kubernetes platform components and workloads.
+
+Current direction:
+
+* OpenTofu provisions and configures infrastructure required by the platform.
+* OpenTofu may also manage Kubernetes and Helm resources where this provides a coherent, reproducible deployment flow.
+* Helm remains the packaging and deployment mechanism for Kubernetes applications and platform components where appropriate.
+* Infrastructure provisioning and Kubernetes workload deployment do not necessarily need to share the same lifecycle or CI/CD flow.
+
+Architectural concerns:
+
+* Avoid coupling application lifecycle unnecessarily to infrastructure lifecycle.
+* Keep ownership boundaries between infrastructure, platform and application deployments explicit.
+* Do not use OpenTofu modules merely to hide Helm or Kubernetes implementation details without a meaningful abstraction.
+* Determine where OpenTofu responsibility should end and application-specific deployment tooling should begin.
+
+Revisit during:
+
+* OpenTofu implementation design
+* Kubernetes platform design
+* CI/CD orchestration design
+* Application deployment strategy
+
+## Bastion and administrative access architecture
+
+Evaluate whether a bastion host, jump host or equivalent controlled administrative access capability is required.
+
+Current direction:
+
+* Do not introduce a bastion solely because it is common in reference architectures.
+* Introduce an additional administrative access layer only when concrete security, network or operational requirements justify it.
+
+Architectural concerns:
+
+* Administrative access should follow least-privilege and auditable access principles.
+* Additional infrastructure introduces operational responsibilities and another security-sensitive component.
+* Cloud-native or identity-aware access mechanisms may remove the need for a traditional bastion.
+
+Revisit during:
+
+* Network and security architecture
+* Administrative access design
+* Production security hardening
+
+## Local Kubernetes development environment
+
+Validate how OpenTofu interacts with a local Kubernetes environment used for learning and development.
+
+Current question:
+
+* Determine whether and how OpenTofu should target a local Kubernetes runtime such as Rancher Desktop during development and testing.
+
+Architectural concerns:
+
+* The local development mechanism must not become an implicit production architecture dependency.
+* Configuration should remain sufficiently portable to validate the same concepts against the intended platform environments.
+* Environment-specific implementation differences should remain explicit.
+
+Revisit during:
+
+* First OpenTofu implementation
+* Environment strategy
+* Kubernetes development workflow
