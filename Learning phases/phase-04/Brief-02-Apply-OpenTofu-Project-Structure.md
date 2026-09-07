@@ -88,5 +88,6 @@ This brief is complete when:
 4. The relevant coding standards have been applied.
 5. We have decided whether an OpenTofu module is justified for the implementation.
 6. The Phase 3 architecture has been practically validated and any required corrections have been documented.
+7. A learning document is added to the learning-points, as reference.
 
 At completion, summarize which Phase 3 decisions were confirmed, changed or deferred before moving to Brief 03.
