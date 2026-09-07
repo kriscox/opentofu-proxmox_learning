@@ -1,87 +1,104 @@
-# Brief-03 — Define Platform Deployment Scopes
+# Brief-03 — Decompose the Existing Platform Architecture
 
 ## Goal
 
-Define the deployment scopes, deployment units and dependencies required for the initial Kubernetes and observability platform.
+Analyse the existing platform bootstrap and translate it into the deployment-scope and deployment-unit model.
 
-The objective is to establish the architectural boundaries before implementing infrastructure or workloads.
+Use the existing implementation as a source of architectural knowledge, not as a structure that must be copied unchanged.
 
-## Working method
+The objective is to identify coherent lifecycle boundaries, explicit dependencies and unnecessary technical coupling before changing the implementation.
 
-Use the current default branches of these repositories as the source of truth:
+## Source of truth
+
+Use the current default branches of:
 
 * `kriscox/OpenTofu-Proxmox`
 * `kriscox/opentofu-proxmox_learning`
+* `kriscox/proxmox-bootstrap`
 
-Do not implement infrastructure yet.
-
-Work one architectural decision at a time.
-
-Do not create deployment units or scopes merely to fit a repository structure. Each boundary must have a clear responsibility and lifecycle justification.
+Read the relevant current files before making architectural decisions.
 
 Do not modify or push repository content unless explicitly requested.
 
+## Starting point
+
+The existing `proxmox-bootstrap` implementation already contains responsibilities related to:
+
+* Proxmox host networking;
+* VLAN configuration;
+* firewall and forwarding;
+* storage/snippet configuration;
+* bastion infrastructure;
+* Kubernetes virtual machines;
+* generated configuration and inventory;
+* OpenTofu provisioning;
+* handover to configuration-management and Kubernetes bootstrap tooling.
+
+These existing implementation boundaries must not automatically become deployment scopes.
+
 ## Scope
 
-Define at least these deployment scopes:
+Analyse each existing platform component and determine whether it is:
 
-### `ds-kubernetes-platform`
+* a deployment scope;
+* a deployment unit;
+* reusable technical implementation;
+* scope-specific configuration;
+* bootstrap logic;
+* or orchestration.
 
-A platform capability providing the Kubernetes environment required by dependent deployment scopes.
-
-Determine:
+For every candidate deployment scope determine:
 
 * purpose;
 * responsibilities;
-* scope boundaries;
+* lifecycle boundary;
+* ownership;
 * dependencies;
 * provided capabilities;
-* deployment units, if any are justified;
-* lifecycle boundary;
-* selected delivery mechanisms.
+* consumed capabilities;
+* delivery mechanisms currently used;
+* state requirements where OpenTofu is used.
 
-The initial platform is expected to provide the capabilities required by the observability use case, including:
+## Dependency analysis
 
-* Kubernetes cluster access;
-* ingress capability;
-* persistent storage capability;
-* required network connectivity.
+Document the existing bootstrap sequence and distinguish:
 
-### `ds-observability`
+* real architectural dependencies;
+* technical implementation dependencies;
+* orchestration order;
+* dependencies introduced only by the current tooling.
 
-A platform capability providing central log ingestion, storage and visualisation.
+Identify dependencies that could prevent individual scopes from being deployed or changed independently.
 
-The initial composition is expected to contain:
+Special attention must be given to the role of Ansible and whether it introduces avoidable bootstrap dependencies.
 
-* `du-log-ingestion-storage`
+Do not assume that Ansible must be removed.
 
-  * Vector Server;
-  * Loki.
-* `du-observability-visualisation`
+The objective is to determine whether infrastructure can be established without requiring an unnecessary external configuration-management dependency.
 
-  * Grafana.
+## Kubernetes distribution
 
-Validate these boundaries against the current architectural definitions rather than accepting them automatically.
+Do not assume K3s or RKE2 in advance.
 
-## Dependencies
+The existing implementation uses RKE2-related bootstrap patterns.
 
-Define the dependency between:
+Evaluate whether:
 
-```text
-ds-observability
-        ↓ depends on
-ds-kubernetes-platform
-```
+* RKE2 remains appropriate;
+* K3s provides sufficient capability with lower complexity;
+* the choice materially affects deployment-scope boundaries or bootstrap dependencies.
 
-Describe the dependency in terms of capabilities rather than internal implementation.
+The Kubernetes distribution decision must follow from the platform requirements rather than from the learning environment.
 
 ## Completion criteria
 
 This brief is complete when:
 
-1. both deployment scopes have clear responsibilities and boundaries;
-2. their deployment units are identified and justified;
-3. dependencies between the scopes are explicit;
-4. required capabilities provided by `ds-kubernetes-platform` are documented;
-5. delivery mechanisms are identified without making them part of the architectural definition;
-6. the resulting architecture is ready for implementation.
+1. the existing bootstrap architecture has been decomposed;
+2. candidate deployment scopes and deployment units are identified and justified;
+3. dependencies between scopes are explicit;
+4. implementation dependencies are distinguished from architectural dependencies;
+5. the role of Ansible is understood;
+6. problematic bootstrap coupling is identified;
+7. the Kubernetes distribution decision is sufficiently understood to proceed with implementation;
+8. the resulting architecture is ready to guide restructuring.

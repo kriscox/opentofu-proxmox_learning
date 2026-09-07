@@ -1,93 +1,101 @@
-# Brief-04 — Build the Kubernetes Platform
+# Brief-04 — Restructure the Infrastructure Bootstrap
 
 ## Goal
 
-Implement the initial `ds-kubernetes-platform` on Proxmox.
+Implement the infrastructure-oriented deployment scopes identified in Brief-03.
 
-The result must be a small but usable Kubernetes platform capable of hosting the observability scope.
+The objective is to create a reproducible infrastructure foundation while reducing unnecessary bootstrap dependencies.
 
 ## Starting point
 
-The architecture and boundaries defined in Brief-03 are authoritative for this implementation.
+Use the architectural decomposition from Brief-03 as authoritative.
 
-Do not expand the platform beyond requirements demonstrated by the initial observability use case.
+Reuse useful implementation knowledge from `proxmox-bootstrap`, but do not preserve existing scripts, directory structures or tool choices solely because they already exist.
 
 ## Scope
 
-Build an initial Kubernetes environment based on:
+Implement the infrastructure capabilities required before Kubernetes can be installed.
 
-* one Proxmox virtual machine;
-* K3s;
-* required network configuration;
-* required firewall configuration;
-* ingress capability;
-* persistent storage capability.
+This may include, depending on the boundaries established in Brief-03:
 
-Use OpenTofu where infrastructure provisioning is appropriate.
+* Proxmox host network configuration;
+* VLANs;
+* routing and forwarding;
+* firewall configuration;
+* required storage configuration;
+* bastion infrastructure;
+* Kubernetes VM infrastructure;
+* cloud-init or equivalent guest bootstrap.
 
-Additional configuration mechanisms may be used where OpenTofu is not the appropriate tool, but their role must remain explicit.
+## Delivery mechanisms
 
-## Implementation principles
+Use the mechanism that best fits each responsibility.
 
-### Proxmox VM
+Possible mechanisms include:
 
-Provision the VM reproducibly.
+* OpenTofu;
+* cloud-init;
+* native shell/bootstrap scripts;
+* Proxmox-native configuration;
+* Ansible where justified.
 
-At minimum, determine and implement:
+Do not introduce one tool simply to make all scopes use the same mechanism.
 
-* CPU;
-* memory;
-* storage;
-* network configuration;
-* operating system requirements.
+## Ansible dependency review
 
-Avoid premature abstraction.
+For every task currently implemented through Ansible, determine:
 
-Create an OpenTofu module only when reuse or encapsulation is demonstrated.
+1. what responsibility the task performs;
+2. when it must execute;
+3. what it depends on;
+4. whether it is required before Kubernetes becomes usable;
+5. whether another mechanism can provide the same capability with fewer bootstrap dependencies.
 
-### K3s
+Prefer replacing Ansible where the task naturally belongs in:
 
-Install and configure K3s on the VM.
+* VM creation;
+* initial guest configuration;
+* cloud-init;
+* operating-system bootstrap;
+* Kubernetes installation bootstrap.
 
-The implementation must result in a usable Kubernetes API and cluster.
+Keep Ansible where it provides clear value and does not introduce unnecessary lifecycle coupling.
 
-Do not introduce multi-node or high-availability design unless required by the current use case.
+The success criterion is not "zero Ansible".
 
-### Ingress
+The success criterion is **no unnecessary dependency on Ansible to establish the infrastructure foundation**.
 
-Provide an ingress capability sufficient for workloads deployed in the next brief.
+## OpenTofu
 
-Use the capabilities already available through K3s where they satisfy the requirement unless there is a concrete architectural reason to replace them.
+Where OpenTofu is used:
 
-### Storage
-
-Provide persistent storage suitable for the initial observability workloads.
-
-The implementation only needs to satisfy the current platform requirements.
-
-Do not introduce a production-scale storage architecture prematurely.
-
-### Network and firewall
-
-Allow only the connectivity required to:
-
-* administer the platform;
-* access the Kubernetes API where required;
-* expose required ingress endpoints;
-* support the observability workloads.
+* respect deployment-scope state boundaries;
+* keep environment-specific configuration separate;
+* create modules only when reuse or encapsulation is demonstrated;
+* avoid embedding unrelated lifecycle responsibilities into one state.
 
 ## Verification
 
-Verify independently that:
+Verify each infrastructure scope independently where possible.
 
-* the VM can be created reproducibly;
-* K3s starts correctly;
-* Kubernetes API access works;
-* ingress capability is available;
-* persistent storage can be provisioned;
-* required network connectivity works;
-* infrastructure can be removed predictably.
+At minimum confirm:
+
+* network configuration behaves as intended;
+* management access remains available;
+* required VLAN connectivity works;
+* firewall rules enforce the intended boundaries;
+* required storage capabilities exist;
+* VMs can be created reproducibly;
+* VM bootstrap succeeds without hidden manual configuration;
+* scopes can be changed without unnecessarily rebuilding unrelated scopes.
 
 ## Completion criteria
 
-This brief is complete when `ds-kubernetes-platform` provides a working Kubernetes environment with the capabilities required by `ds-observability`.
+This brief is complete when:
+
+1. the required infrastructure scopes are implemented;
+2. their dependencies are explicit;
+3. the infrastructure can be recreated predictably;
+4. no unnecessary Ansible dependency exists before Kubernetes bootstrap;
+5. remaining configuration-management use is justified;
+6. the platform is ready for Kubernetes installation.

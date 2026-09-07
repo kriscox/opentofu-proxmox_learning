@@ -1,92 +1,114 @@
-# Brief-06 — Validate the Platform End to End
+# Brief-06 — Validate Independent Deployment and Recovery
 
 ## Goal
 
-Validate the complete chain from infrastructure provisioning to observable log data.
+Validate the complete platform architecture, deployment dependencies and lifecycle behaviour.
 
-The purpose is to prove that the architecture, dependencies and delivery mechanisms work together as intended.
+The objective is not only to prove that the platform works, but that the deployment-scope model supports predictable creation, change, recovery and replacement.
 
 ## Scope
 
-Test the complete deployment chain:
+Validate the complete chain derived from the final architecture.
+
+Conceptually:
 
 ```text
-Proxmox
-   ↓
-ds-kubernetes-platform
-   ↓
-K3s
-   ↓
-ds-observability
-   ├── Vector Server
-   ├── Loki
-   └── Grafana
+Proxmox host
+    ↓
+Infrastructure foundation
+    ↓
+VM infrastructure
+    ↓
+Kubernetes platform
+    ↓
+Observability
 ```
 
-## Test sequence
+The actual scope names and boundaries must follow the architecture established in Brief-03.
 
-### Platform validation
-
-Verify that the Kubernetes platform provides:
-
-* a working cluster;
-* ingress;
-* persistent storage;
-* required connectivity.
-
-### Observability validation
+## Functional validation
 
 Verify that:
 
-* Vector Server accepts test log data;
-* the log data reaches Loki;
-* Loki stores the data;
-* Grafana can query Loki;
-* the test log can be found through Grafana.
+* infrastructure scopes deploy correctly;
+* Kubernetes becomes usable;
+* observability workloads become healthy;
+* Vector receives test log data;
+* log data reaches Loki;
+* Loki stores it;
+* Grafana can query and display it.
 
-### Dependency validation
+## Dependency validation
 
-Verify that deployment order matters as expected.
+For each deployment scope:
 
-`ds-observability` must rely only on the explicitly defined capabilities of `ds-kubernetes-platform`.
+* confirm its declared dependencies;
+* identify any hidden dependencies;
+* distinguish deployment order from architectural coupling;
+* verify that unrelated scopes do not need to be redeployed.
 
-Identify any hidden dependency discovered during testing.
+Pay particular attention to dependencies on:
 
-### Lifecycle validation
+* Ansible;
+* generated local files;
+* manual host configuration;
+* shared state;
+* implicit script execution order.
 
-Validate the lifecycle of both scopes.
+## Lifecycle validation
 
-At minimum:
+Where safe and appropriate, test:
 
-* deploy;
-* verify;
-* make a controlled configuration change;
-* verify the change;
-* remove the deployment where appropriate;
-* recreate it;
-* verify that the resulting platform remains predictable.
+* initial deployment;
+* repeated deployment;
+* controlled configuration change;
+* independent scope change;
+* destruction and recreation;
+* recovery after partial failure.
 
-### Architecture validation
+Verify that rebuilding one scope does not unnecessarily affect unrelated scopes.
 
-After the technical tests, review whether implementation revealed problems in:
+## Bootstrap validation
+
+Perform or simulate a clean bootstrap from an empty infrastructure starting point.
+
+Document every external prerequisite required before automation can begin.
+
+The desired result is a bootstrap chain without hidden circular dependencies.
+
+Where manual bootstrap remains necessary, confirm that it is:
+
+* minimal;
+* explicit;
+* documented;
+* stable;
+* intentionally outside automated lifecycle management.
+
+## Architecture review
+
+Review whether implementation revealed problems in:
 
 * deployment-scope boundaries;
 * deployment-unit boundaries;
-* dependencies;
+* state boundaries;
 * delivery-mechanism selection;
+* dependency metadata;
 * repository structure;
-* state boundaries.
+* bootstrap responsibilities.
 
-Architectural documentation should only be changed where the implementation provides concrete evidence that an earlier assumption was incorrect.
+Do not change architectural decisions merely to match the existing implementation.
+
+Change them only where implementation demonstrates that the architectural model is incorrect or impractical.
 
 ## Completion criteria
 
 This brief is complete when:
 
-1. the Kubernetes platform can be deployed reproducibly;
-2. the observability scope can be deployed on top of it;
-3. a test log travels successfully through Vector and Loki to Grafana;
-4. persistence and ingress behave as expected;
-5. dependencies between the scopes are confirmed;
-6. lifecycle operations are predictable;
-7. architecture and implementation are consistent.
+1. the platform can be built from its defined starting conditions;
+2. dependencies between deployment scopes are explicit;
+3. no hidden bootstrap dependency remains;
+4. infrastructure and Kubernetes workloads can evolve with appropriate lifecycle independence;
+5. observability works end to end;
+6. remaining Ansible use is understood and justified;
+7. rebuild and recovery behaviour is predictable;
+8. architecture and implementation are consistent.

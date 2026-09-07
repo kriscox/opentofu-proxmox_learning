@@ -1,16 +1,54 @@
-# Brief-05 — Build the Observability Scope
+# Brief-05 — Build the Kubernetes and Observability Platform
 
 ## Goal
 
-Implement `ds-observability` on the Kubernetes platform created in Brief-04.
+Build the Kubernetes platform on top of the infrastructure foundation and deploy the initial observability capability.
 
-Use Helm as the delivery mechanism for the Kubernetes workloads.
+The objective is to validate the separation between infrastructure delivery and Kubernetes workload delivery.
 
 ## Starting point
 
-The deployment-unit and deployment-scope boundaries established in Brief-03 remain authoritative.
+The infrastructure scopes from Brief-04 must already provide the capabilities required by the Kubernetes platform.
 
-The expected deployment units are:
+The Kubernetes distribution selected during Brief-03 is used here.
+
+## Kubernetes platform
+
+Implement the Kubernetes platform using the delivery mechanism established during the architectural analysis.
+
+Determine and implement only what the current use case requires.
+
+This includes, where applicable:
+
+* Kubernetes control plane and workers;
+* cluster networking;
+* ingress capability;
+* persistent storage capability;
+* required cluster access;
+* required security configuration.
+
+Avoid introducing production-scale HA or additional platform services unless they are required by the current architecture.
+
+## Bootstrap mechanism
+
+Where Kubernetes installation or host configuration currently depends on Ansible, reassess whether that dependency remains justified.
+
+Possible alternatives may include:
+
+* cloud-init;
+* installation/bootstrap scripts;
+* OpenTofu-triggered guest bootstrap;
+* native Kubernetes installation mechanisms.
+
+Do not replace Ansible if the replacement creates a more fragile or opaque solution.
+
+## Observability deployment scope
+
+Implement the observability deployment scope on the Kubernetes platform.
+
+Expected deployment units remain subject to the architecture established in Brief-03.
+
+The current expected model is:
 
 ### `du-log-ingestion-storage`
 
@@ -21,67 +59,57 @@ The expected deployment units are:
 
 * Grafana.
 
-Helm does not define these deployment units. Helm is only the mechanism used to deliver their components.
+## Helm
 
-## Scope
+Use Helm as the preferred delivery mechanism for the observability Kubernetes workloads.
 
-Identify suitable Helm charts for:
+Identify maintained Helm charts for:
 
 * Vector;
 * Loki;
 * Grafana.
 
-Prefer existing maintained charts over building custom charts.
+Prefer upstream or maintained charts over custom charts.
 
 For each chart:
 
-1. understand its default behaviour;
-2. determine which values are required for this platform;
-3. avoid changing defaults without a concrete requirement;
-4. introduce local configuration only where needed;
-5. keep environment-specific differences separate from shared configuration.
+1. understand the defaults;
+2. determine required configuration;
+3. override only what the platform requires;
+4. keep environment-specific values separate;
+5. avoid copying complete upstream charts unless modification is genuinely required.
 
-## Vector and Loki
+## Integration
 
-Deploy Vector Server and Loki as the implementation of `du-log-ingestion-storage`.
+Verify that the observability scope consumes platform capabilities rather than depending on internal Kubernetes-platform implementation details.
 
-Configure only what is required to:
-
-* receive log data;
-* process or forward it as required;
-* store it in Loki;
-* expose the required Loki interfaces.
-
-## Grafana
-
-Deploy Grafana as `du-observability-visualisation`.
-
-Configure it to consume Loki as a data source.
-
-Keep Grafana lifecycle and configuration separate from the log-ingestion deployment unit.
-
-## Kubernetes integration
-
-Use the capabilities provided by `ds-kubernetes-platform` for:
+Expected capabilities include:
 
 * Kubernetes runtime;
 * ingress;
 * persistent storage;
-* required network connectivity.
+* network connectivity.
 
-Scope-specific Kubernetes resources, such as the observability namespace, remain owned by `ds-observability`.
+Scope-owned Kubernetes configuration, such as namespaces and workload-specific resources, remains owned by the observability scope.
 
 ## Verification
 
-Verify independently that:
+Verify that:
 
-* all Helm releases deploy successfully;
-* workloads become healthy;
-* persistent volumes are created where required;
+* Kubernetes becomes operational;
+* required storage can be provisioned;
+* ingress works;
+* Helm deployments succeed;
 * Vector can communicate with Loki;
-* Grafana can communicate with Loki;
-* required ingress endpoints are reachable.
+* Loki persists log data as required;
+* Grafana can query Loki.
 
 ## Completion criteria
 
-This brief is complete when both observability deployment units are operational on the Kubernetes platform and their configuration is represented reproducibly in the repository.
+This brief is complete when:
+
+1. the Kubernetes platform is operational;
+2. observability workloads are deployed reproducibly;
+3. platform and workload delivery responsibilities remain separated;
+4. any remaining Ansible use is explicit and justified;
+5. the observability scope consumes only defined platform capabilities.
